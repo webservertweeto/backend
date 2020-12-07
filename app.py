@@ -1209,6 +1209,25 @@ def addnewtwitteraccount():
         }
  
 
+#Twitter
+@app.route('/getlatesttweets', methods = ["POST"])
+def getlatesttweets():
+    pass
+
+#Cognito + Dynamo
+@app.route('/getscheduledtweets', methods = ["POST"])
+def getscheduledtweets():
+    pass
+
+#Cognito + Dynamo
+@app.route('/scheduleatweet', methods = ["POST"])
+def scheduleatweet():
+    pass
+
+#Delete a scheduled tweet
+@app.route('/deleteascheduledtweet', methods = ["POST"])
+def deleteascheduledtweet():
+    pass
 
 if __name__ == '__main__':
 
