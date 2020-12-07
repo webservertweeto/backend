@@ -9,6 +9,7 @@ import base64
 from os.path import join, dirname
 from dotenv import load_dotenv
 import json
+import datetime
 
 app = Flask(__name__)
 application = app
@@ -33,6 +34,8 @@ def get_secret_hash(username,CLIENT_ID,CLIENT_SECRET):
     d2 = base64.b64encode(dig).decode()
     return d2
 
+
+#----------------------------ROUTES----------------------------#
 #Cognito
 @app.route('/signup', methods = ["POST"])
 def signup():
@@ -274,13 +277,151 @@ def resendverificationcode():
 #Cognito + DynamoDB
 @app.route('/confirmsignup', methods = ["POST"])
 def confirmsignup():
-    pass
-
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        username = str(jsonData["email"])
+        code = str(jsonData["code"])
+        consumerKey = str(jsonData["consumerKey"])
+        consumerSecret = str(jsonData["consumerSecret"])
+        accessTokenKey = str(jsonData["accessTokenKey"])
+        accessTokenSecret = str(jsonData["accessTokenSecret"])
+        twitterHandle = str(jsonData["twitterHandle"])
+        twitterID = str(jsonData["twitterID"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an email, verification code, consumer key, consumer secret, access token key, and access token secret."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }   
+    
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)   
+        response = client.confirm_sign_up(
+        ClientId=CLIENT_ID,
+        SecretHash=get_secret_hash(username,CLIENT_ID,CLIENT_SECRET),
+        Username=username,
+        ConfirmationCode=code,
+        ForceAliasCreation=False)
+    
+        body = {
+            "Success": "Your account has been verified! Please log in."
+        }
+        
+        tableName = "users"
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        table = dynamoDB.Table(tableName)
+        
+        today = datetime.datetime.now()
+        dateString = str(today.month) + "/" + str(today.day) + "/" + str(today.year) 
+        
+        table.put_item(
+            Item = {
+                'email': username,
+                'twitterid':twitterID,
+                'twitterHandle': twitterHandle,
+                'consumerKey': consumerKey,
+                'consumerSecret': consumerSecret,
+                'accessTokenKey': accessTokenKey,
+                'accessTokenSecret': accessTokenSecret,
+                'dateJoined': dateString
+            })
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except client.exceptions.ExpiredCodeException as e:
+        print(str(e))
+        body = {
+            "Error": "This code has already expired. Please request for a new one."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except client.exceptions.CodeMismatchException:
+        body = {
+            "Error": "You have provided an invalid code. Please double-check your email or request for a new code."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+        
+    except client.exceptions.NotAuthorizedException:
+        body = {
+            "Error": "This user has already been confirmed."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error": "Something went wrong. Please check back at a later time."
+        }
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
 
 #Cognito
 @app.route('/login', methods = ["POST"])
 def login():
-    pass
 
 #Cognito + DynamoDB
 @app.route('/getuser', methods = ["POST"])
