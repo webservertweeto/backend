@@ -422,6 +422,122 @@ def confirmsignup():
 #Cognito
 @app.route('/login', methods = ["POST"])
 def login():
+    def awslogin(client, username, password,CLIENT_ID,CLIENT_SECRET):
+        secret_hash = get_secret_hash(username,CLIENT_ID,CLIENT_SECRET)
+        try:
+            response = client.initiate_auth(
+                ClientId=CLIENT_ID,
+                AuthFlow='USER_PASSWORD_AUTH',
+                AuthParameters={
+                    'USERNAME': username,
+                    'SECRET_HASH': secret_hash,
+                    'PASSWORD': password,
+                },
+                ClientMetadata={
+                'username': username,
+                'password': password})
+            
+            return response,None
+        except client.exceptions.NotAuthorizedException:
+            return None, {
+                "Error": "Invalid username/password combination."
+            }
+        except client.exceptions.UserNotConfirmedException:
+            return None, {
+                "Error": "Please ensure your account has been verfied via email first before signing in."
+            }
+        except Exception as e:
+            print(str(e))
+            return None,{
+                "Error": "Something went wrong. Please check back at a later time."
+            }
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        username = str(jsonData["email"])
+        password = str(jsonData["password"])
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)   
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an email and password"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }  
+
+    response, errorMessage = awslogin(client, username, password,CLIENT_ID,CLIENT_SECRET)
+    
+    if errorMessage != None:
+        if "Something" in errorMessage["Error"]:
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': errorMessage
+            }
+        else:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': errorMessage
+            }
+    if response.get("AuthenticationResult"):
+        body = { 
+               "id_token": response["AuthenticationResult"]["IdToken"],
+               "refresh_token": response["AuthenticationResult"]["RefreshToken"],
+               "access_token": response["AuthenticationResult"]["AccessToken"]
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    else:
+        body = {
+            "Error": "Something went wrong. Please check back at a later time."
+        }
+        print(str(e))
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        } 
 
 #Cognito + DynamoDB
 @app.route('/getuser', methods = ["POST"])
