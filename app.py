@@ -547,12 +547,75 @@ def getuser():
 #Cognito
 @app.route('/forgotpassword', methods = ["POST"])
 def forgotpassword():
-    pass
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        username = str(jsonData["email"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an email."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }   
+    
+
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)      
+        response = client.forgot_password(
+            ClientId=CLIENT_ID,
+            SecretHash=get_secret_hash(username,CLIENT_ID,CLIENT_SECRET),
+            Username=username,
+            
+        )
+        body = {
+            "Success": "Done. If your account exists, you will be receiving an email to trigger your password reset."
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    
+    except Exception as e:
+        body = {
+            "Success": "Something went wrong. Please check back at a later time."
+        }
+        print(str(e))
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }    
 
 #Cognito
 @app.route('/confirmforgotpassword', methods = ["POST"])
 def confirmforgotpassword():
-    pass
 
 
 if __name__ == '__main__':
