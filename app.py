@@ -26,8 +26,116 @@ AWS_ACCESS_KEY_ID=os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY=os.environ.get("AWS_SECRET_ACCESS_KEY")
 REGION_NAME=os.environ.get("REGION_NAME")
 #----------------------------HELPER FUNCTIONS----------------------------#
-def authorizeuser():
-    pass
+def authorizeuser(token):
+    try:
+        jsonData = request.json
+        token = token
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)   
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an access token"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }  
+    try:
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        
+        
+        body = {
+            "Success":"Your token is valid."
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+    except client.exceptions.NotAuthorizedException as e:
+        errorMessage = str(e).lower()
+        if "invalid" in errorMessage:
+            body = {
+                "Error": "You are not authorized to commit this action. Please log in to retrieve a valid access token."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        elif "expired" in errorMessage:
+            body = {
+                "Error": "Your session has expired. Please refresh your token."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        else:
+            print(str(errorMessage))
+            body = {
+                "Error": "Something went wrong. We weren't able to validate your session. Please log in again."
+            }
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+    except Exception as e:
+            body = {
+                "Error": "Something went wrong. We weren't able to validate your session. Please log in again."
+            }
+            print(str(e))
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
 
 def get_secret_hash(username,CLIENT_ID,CLIENT_SECRET):
     msg = username + CLIENT_ID
@@ -961,6 +1069,145 @@ def gettwitteraccountinformation():
             'body': body
         }
 
+#Cognito + Dynamo
+@app.route('/addnewtwitteraccount', methods = ["POST"])
+def addnewtwitteraccount():
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        token = str(jsonData["token"])
+        consumerKey = str(jsonData["consumerKey"])
+        consumerSecret = str(jsonData["consumerSecret"])
+        accessTokenKey = str(jsonData["accessTokenKey"])
+        accessTokenSecret = str(jsonData["accessTokenSecret"])
+        twitterHandle = str(jsonData["twitterHandle"])
+        twitterID = str(jsonData["twitterID"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a token, twitter handle, twitter id, consumer key, consumer secret, access token key, and access token secret."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+    #Authenticate the user
+    authResponse = authorizeuser(token = token)
+    if "Error" in authResponse["body"]:
+        return authResponse
+
+    #Update database
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+        
+        userData = {}
+        
+        for attribute in userAttributes:
+            if attribute["Name"] == "name":
+                userData["name"] = attribute["Value"]
+            elif attribute["Name"] == "email":
+                userData["email"] = attribute["Value"]
+            elif attribute["Name"] == "sub":
+                userData["AWSusername"] = attribute["Value"]
+        
+        tableName = "users"
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        table = dynamoDB.Table(tableName)
+
+        response = table.query(
+            KeyConditionExpression = Key('email').eq(userData["email"])
+        )
+
+        
+        items = response["Items"]
+
+        for item in items:
+            if item["twitterid"] == twitterID:
+                body = {
+                    "Error": "You have already registered this account."
+                }
+                
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Credentials': True,
+                        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                    },
+                    'body': body
+                }
+
+        
+        today = datetime.datetime.now()
+        dateString = str(today.month) + "/" + str(today.day) + "/" + str(today.year) 
+        
+        table.put_item(
+            Item = {
+                'email': userData["email"],
+                'twitterid':twitterID,
+                'twitterHandle': twitterHandle,
+                'consumerKey': consumerKey,
+                'consumerSecret': consumerSecret,
+                'accessTokenKey': accessTokenKey,
+                'accessTokenSecret': accessTokenSecret,
+                'dateJoined': dateString
+            })
+        
+        body = {
+            "Success":"Your account has been registered."
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error": "Something went wrong. Please try again later."
+        }
+        
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+ 
 
 
 if __name__ == '__main__':
