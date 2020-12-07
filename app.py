@@ -43,7 +43,7 @@ def signup():
         email = str(jsonData["email"])
         password = str(jsonData["password"])
         name = str(jsonData["name"])
-        print("We got the info")
+
     except Exception as e:
         print(str(e))
         body = {
@@ -98,7 +98,7 @@ def signup():
                 'Access-Control-Allow-Credentials': True,
                 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
             },
-            'body': json.dumps(body)
+            'body': body
         }
         
     except client.exceptions.UsernameExistsException as e:
@@ -114,7 +114,7 @@ def signup():
                 'Access-Control-Allow-Credentials': True,
                 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
             },
-            'body': json.dumps(body)
+            'body': body
         }
     except client.exceptions.InvalidPasswordException as e:
         body = {
@@ -129,7 +129,7 @@ def signup():
             'Access-Control-Allow-Credentials': True,
             'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
         },
-        'body': json.dumps(body)
+        'body': body
         } 
         
     except botocore.exceptions.ParamValidationError as e:
@@ -150,7 +150,7 @@ def signup():
             'Access-Control-Allow-Credentials': True,
             'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
         },
-        'body': json.dumps(body)
+        'body': body
         } 
 
     except Exception as e:
@@ -167,7 +167,7 @@ def signup():
                 'Access-Control-Allow-Credentials': True,
                 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
             },
-            'body': json.dumps(body)
+            'body': body
         }    
     #Create registry in cognito
 
