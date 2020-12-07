@@ -1,5 +1,6 @@
 from flask import Flask, request
 import boto3
+from boto3.dynamodb.conditions import Key,Attr
 import os
 import botocore.exceptions
 import botocore.errorfactory
@@ -542,7 +543,142 @@ def login():
 #Cognito + DynamoDB
 @app.route('/getuser', methods = ["POST"])
 def getuser():
-    pass
+    try:
+        jsonData = request.json
+        token = str(jsonData["token"])
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)   
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an access token"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }  
+    try:
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+        
+        body = {}
+        
+        for attribute in userAttributes:
+            if attribute["Name"] == "name":
+                body["name"] = attribute["Value"]
+            elif attribute["Name"] == "email":
+                body["email"] = attribute["Value"]
+            elif attribute["Name"] == "sub":
+                body["AWSusername"] = attribute["Value"]
+        
+        tableName = "users"
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        table = dynamoDB.Table(tableName)
+        
+        
+        response = table.query(
+            KeyConditionExpression = Key('email').eq(body["email"])
+        )
+
+        body["twitterAccounts"] = []
+        items = response["Items"]
+
+        for item in items:
+            del item["email"]
+            body["twitterAccounts"].append(item)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+    except client.exceptions.NotAuthorizedException as e:
+        errorMessage = str(e).lower()
+        print(errorMessage)
+        if "invalid" in errorMessage:
+            body = {
+                "Error": "You are not authorized to commit this action. Please log in to retrieve a valid access token."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        elif "expired" in errorMessage:
+            body = {
+                "Error": "Your session has expired."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        else:
+            print(str(e))
+            body = {
+                "Error": "Something went wrong. We weren't able to validate your session. Please log in again."
+            }
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+    except Exception as e:
+            body = {
+                "Error": "Something went wrong. We weren't able to validate your session. Please log in again."
+            }
+            print(str(e))
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }    
 
 #Cognito
 @app.route('/forgotpassword', methods = ["POST"])
