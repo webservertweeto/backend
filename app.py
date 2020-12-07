@@ -614,8 +614,141 @@ def forgotpassword():
         }    
 
 #Cognito
-@app.route('/confirmforgotpassword', methods = ["POST"])
-def confirmforgotpassword():
+@app.route('/confirmpasswordreset', methods = ["POST"])
+def confirmpasswordreset():
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        username = str(jsonData["email"])
+        password = str(jsonData["password"])
+        code = str(jsonData["code"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an email, password, and code"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }   
+    
+
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)    
+        
+        client.confirm_forgot_password(
+            ClientId=CLIENT_ID,
+            SecretHash=get_secret_hash(username,CLIENT_ID,CLIENT_SECRET),
+            Username=username,
+            ConfirmationCode=code,
+            Password=password,
+           )
+        body = {
+            "Success": "You have successfully changed your password. Please proceed to log in."
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except client.exceptions.InvalidPasswordException as e:
+        body = {
+            "Error": "Please ensure that your password has at least 8 characters and contains a mix of uppercase letters, lowercase letters, special characters and numbers."
+        }
+        return {
+        'statusCode': 400,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Credentials': True,
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+        },
+        'body': body
+        } 
+    except client.exceptions.CodeMismatchException as e:
+        body = {
+            "Error": "You have provided an invalid code."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except botocore.exceptions.ParamValidationError as e:
+        if len(username) == 0:
+            body = {
+                "Error": "Please provide a valid email address."
+            }
+        else:
+            body = {
+                "Error": "Please ensure that your new password has at least 8 characters and contains a mix of uppercase letters, lowercase letters, special characters and numbers."
+            }
+        return {
+        'statusCode': 400,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Credentials': True,
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+        },
+        'body': body
+        } 
+    except client.exceptions.ExpiredCodeException as e:
+        body = {
+            "Success": "Your code has expired. Please request for a new one."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+        
+    except Exception as e:
+        body = {
+            "Success": "Something went wrong. Please check back at a later time."
+        }
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }   
 
 
 if __name__ == '__main__':
