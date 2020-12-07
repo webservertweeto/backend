@@ -189,7 +189,87 @@ def signup():
 #Cognito
 @app.route('/resendverificationcode', methods = ["POST"])
 def resendverificationcode():
-    pass
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        username = str(jsonData["email"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an email."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }    
+    
+    #Resend confirmation code for signing up
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)  
+        response = client.resend_confirmation_code(
+        ClientId=CLIENT_ID,
+        SecretHash=get_secret_hash(username,CLIENT_ID,CLIENT_SECRET),
+        Username=username,
+    )
+        body = {
+            "Success": "Done. If your account exists, you will be receiving a verification code via email shortly."
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    
+    except Exception as e:
+        if len(username) == 0:
+            body = {
+                "Error": "Please provide a valid email."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        else:
+            body = {
+                "Error": "Something went wrong.Please check back at a later time."
+            }
+            print(str(e))
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+    
 
 #Cognito + DynamoDB
 @app.route('/confirmsignup', methods = ["POST"])
