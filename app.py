@@ -1212,7 +1212,70 @@ def addnewtwitteraccount():
 #Twitter
 @app.route('/getlatesttweets', methods = ["POST"])
 def getlatesttweets():
-    pass
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        consumerKey = str(jsonData["consumerKey"])
+        consumerSecret = str(jsonData["consumerSecret"])
+        accessTokenKey = str(jsonData["accessTokenKey"])
+        accessTokenSecret = str(jsonData["accessTokenSecret"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    
+    #Get latest tweets here
+    try:
+        #do twitter stuff here Jiseon, get 5 latest tweets
+        #Make it a list of JSON objects
+        #Each object should have: twitter handle, twitter post date, twitter profile picture, message, photo (if they uploaded a photo)
+        latestTweets = []
+
+        body = {
+            "Data": latestTweets
+        }
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
 
 #Cognito + Dynamo
 @app.route('/getscheduledtweets', methods = ["POST"])
