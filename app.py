@@ -686,6 +686,14 @@ def getuser():
 
         for item in items:
             del item["email"]
+            api = getTweepyAPI(item["consumerKey"],item["consumerSecret"],item["accessTokenKey"],item["accessTokenSecret"])
+            data = api.me()
+            userDataJson = data._json
+            item["twitterID"] = userDataJson["id_str"]
+            item["twitterHandle"] = userDataJson["screen_name"]
+            item["twitterFullName"] = userDataJson["name"]
+            item["twitterProfilePicture"] = userDataJson["profile_image_url"]
+            item["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
             body["twitterAccounts"].append(item)
         
         return {
@@ -1038,35 +1046,34 @@ def addnewtwitteraccount():
                                 aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
         table = dynamoDB.Table(tableName)
 
-        response = table.query(
-            KeyConditionExpression = Key('email').eq(userData["email"])
-        )
-
-
         api = getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret)
         data = api.me()
         userDataJson = data._json
         twitterID = userDataJson["id_str"]
-        
-        items = response["Items"]
 
-        for item in items:
-            if item["twitterid"] == twitterID:
-                body = {
-                    "Error": "You have already registered this account."
-                }
-                
-                return {
-                    'statusCode': 400,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Credentials': True,
-                        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
-                    },
-                    'body': body
-                }
+        response = table.get_item(
+            Key = {
+                "email": userData["email"],
+                "twitterID": twitterID
+            }
+        )
+        
+        if "Item" in response:
+            body = {
+                "Error": "You have already registered this account."
+            }
+            
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
 
         
         today = datetime.datetime.now()
@@ -1075,7 +1082,7 @@ def addnewtwitteraccount():
         table.put_item(
             Item = {
                 'email': userData["email"],
-                'twitterid':twitterID,
+                'twitterID':twitterID,
                 'consumerKey': consumerKey,
                 'consumerSecret': consumerSecret,
                 'accessTokenKey': accessTokenKey,
@@ -1123,14 +1130,12 @@ def getlatesttweets():
     #Verify input parameters
     try:
         jsonData = request.json
-        consumerKey = str(jsonData["consumerKey"])
-        consumerSecret = str(jsonData["consumerSecret"])
-        accessTokenKey = str(jsonData["accessTokenKey"])
-        accessTokenSecret = str(jsonData["accessTokenSecret"])
+        token = str(jsonData["token"])
+        twitterID = str(jsonData["twitterid"])
     except Exception as e:
         print(str(e))
         body = {
-            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+            "Error" : "You must provide your aws token and twitterID"
         }
         return {
             'statusCode': 400,
@@ -1144,11 +1149,137 @@ def getlatesttweets():
             'body': body
         }
     
+    #Get Twitter Tokens from Database
+    try:
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+
+        email = None   
+        for attribute in userAttributes:
+            if attribute["Name"] == "email":
+                email = attribute["Value"]
+        
+        tableName = "users"
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        table = dynamoDB.Table(tableName)
+        
+
+        response = table.get_item(
+            Key = {
+                "email": email,
+                "twitterID": twitterID
+            }
+        )
+
+        item = response["Item"]
+        print(item)
+        return item
+        body["twitterAccounts"] = []
+        items = response["Items"]
+
+        for item in items:
+            del item["email"]
+            api = getTweepyAPI(item["consumerKey"],item["consumerSecret"],item["accessTokenKey"],item["accessTokenSecret"])
+            data = api.me()
+            userDataJson = data._json
+            item["twitterID"] = userDataJson["id_str"]
+            item["twitterHandle"] = userDataJson["screen_name"]
+            item["twitterFullName"] = userDataJson["name"]
+            item["twitterProfilePicture"] = userDataJson["profile_image_url"]
+            item["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
+            body["twitterAccounts"].append(item)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+    except client.exceptions.NotAuthorizedException as e:
+        errorMessage = str(e).lower()
+        print(errorMessage)
+        if "invalid" in errorMessage:
+            body = {
+                "Error": "You are not authorized to commit this action. Please log in to retrieve a valid access token."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        elif "expired" in errorMessage:
+            body = {
+                "Error": "Your session has expired."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+        else:
+            print(str(e))
+            body = {
+                "Error": "Something went wrong. We weren't able to validate your session. Please log in again."
+            }
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
+    except Exception as e:
+            body = {
+                "Error": "Something went wrong. We weren't able to validate your session. Please log in again."
+            }
+            print(str(e))
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }   
+
+
     #Get latest tweets here
     try:
         #do twitter stuff here Jiseon, get 5 latest tweets
         #Make it a list of JSON objects
         #Each object should have: twitter handle, twitter post date, twitter profile picture, message, photo (if they uploaded a photo)
+
         latestTweets = []
 
         body = {
