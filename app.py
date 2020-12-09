@@ -1419,7 +1419,109 @@ def getlatesttweets():
 #Cognito + Dynamo
 @app.route('/getscheduledtweets', methods = ["POST"])
 def getscheduledtweets():
-    pass
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        token = str(jsonData["token"])
+
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a token"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+
+
+    #Authenticate the user
+    authResponse = authorizeuser(token = token)
+    if "Error" in authResponse["body"]:
+        return authResponse
+
+    #Update database
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+                
+        for attribute in userAttributes:
+            if attribute["Name"] == "email":
+                email = attribute["Value"]
+        
+
+
+        
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+
+        
+        tableName = "scheduledTweets"
+        table = dynamoDB.Table(tableName)
+
+        resposne = table.query(
+            KeyConditionExpression = Key('email').eq(email)
+        )
+
+        if "Items" in response:
+            items = response["Items"]
+        
+        body = {
+            "Data" : []
+        }
+
+        
+        for item in items:
+            body["Data"].append(item)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error": "Something went wrong. Please try again later."
+        }
+        
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    
 
 
 
