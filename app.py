@@ -1131,7 +1131,7 @@ def getlatesttweets():
     try:
         jsonData = request.json
         token = str(jsonData["token"])
-        twitterID = str(jsonData["twitterid"])
+        twitterID = str(jsonData["twitterID"])
     except Exception as e:
         print(str(e))
         body = {
@@ -1151,6 +1151,11 @@ def getlatesttweets():
     
     #Get Twitter Tokens from Database
     try:
+
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)   
         resp = client.get_user(
             AccessToken = token
            )
@@ -1177,35 +1182,22 @@ def getlatesttweets():
             }
         )
 
+        if "Item" not in response:
+            body = {
+                "Error" : "We could not locate this twitterID in our records."
+            }
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+                },
+                'body': body
+            }
         item = response["Item"]
-        print(item)
-        return item
-        body["twitterAccounts"] = []
-        items = response["Items"]
-
-        for item in items:
-            del item["email"]
-            api = getTweepyAPI(item["consumerKey"],item["consumerSecret"],item["accessTokenKey"],item["accessTokenSecret"])
-            data = api.me()
-            userDataJson = data._json
-            item["twitterID"] = userDataJson["id_str"]
-            item["twitterHandle"] = userDataJson["screen_name"]
-            item["twitterFullName"] = userDataJson["name"]
-            item["twitterProfilePicture"] = userDataJson["profile_image_url"]
-            item["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
-            body["twitterAccounts"].append(item)
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Credentials': True,
-                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
-            },
-            'body': body
-        }
 
     except client.exceptions.NotAuthorizedException as e:
         errorMessage = str(e).lower()
@@ -1280,10 +1272,37 @@ def getlatesttweets():
         #Make it a list of JSON objects
         #Each object should have: twitter handle, twitter post date, twitter profile picture, message, photo (if they uploaded a photo)
 
-        latestTweets = []
+        data_dict = {}
+        arr_dict = []
+
+        api = getTweepyAPI(item["consumerKey"],item["consumerSecret"],item["accessTokenKey"],item["accessTokenSecret"])
+        statuses = api.user_timeline(id=twitterID, count=10)
+        for status in statuses:
+            s = status
+            tweetJson = s._json
+            tweetObj = {}
+            if "media" in tweetJson["entities"]:
+                if "media_url" in tweetJson["entities"]["media"][0]:
+                    tweetObj["imageURL"] = tweetJson["entities"]["media"][0]["media_url"]
+            
+            if "text" in tweetJson:
+                tweetObj['text']  = tweetJson['text']
+            if "created_at" in tweetJson:
+                tweetObj['created_at'] = tweetJson['created_at']
+            if "retweet_count" in tweetJson:
+                tweetObj["retweet_count"] = tweetJson['retweet_count']
+            if "favorite_count" in tweetJson:
+                tweetObj["favorite_count"] = tweetJson["favorite_count"]
+
+            arr_dict.append(tweetObj)
+        data_dict['data'] = arr_dict
+        
+        body = {
+            "test": 1
+        }
 
         body = {
-            "Data": latestTweets
+            "Data": data_dict["data"]
         }
         
         return {
@@ -1301,10 +1320,10 @@ def getlatesttweets():
     except Exception as e:
         print(str(e))
         body = {
-            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+            "Error" : "We had had trouble receiving your latest data."
         }
         return {
-            'statusCode': 400,
+            'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
