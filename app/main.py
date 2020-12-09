@@ -187,12 +187,13 @@ def sendTweet():
         if len(msg) > 280:
             return "ERROR! message too long"
 
+        # Assume that date_time_obj is STRING
         date_time_obj, error_code = get_date_time(
             time)  # Convert time to ISO time zone
         if error_code is not None:
             return error_code
 
-        if str(data_time_obj) < str(current_time):
+        if data_time_obj < str(current_time):
             try:
                 # POST if only tweet message exists
                 if not image_path:
@@ -215,6 +216,42 @@ def showRecentTweets():
     # ⦁    consumer secret
     # ⦁    access token
     # ⦁    access secret
+    # Returns
+    # A list of the last 5 or 10 tweets (list of json objects)
+    # [
+    # {
+    # profile picture  - 'profile_image_url'
+    # twitter ID - 'id'
+    # twitter message + twitter attached picture(?) in message - 'text
+    # time sent - 'created_at'
+    # number of retweets,commetns,likes
+      # 'retweet_count'
+      # 
+    # }
+    # ]
+    data_dict = {}
+    arr_dict = []
+
+    statuses = api.user_timeline(screen_name=screen_name, count=200)
+    s = statuses[0]
+    # print(s._json['user']['profile_image_url'])
+    # print(s._json['profile_image_url'])
+
+    for status in statuses:
+        s = statuses[0]
+        arr_dict.append({
+            'id': s._json['user']['id'],
+            'profile_image_url': s._json['user']['profile_image_url'],
+            'text': s._json['text'],
+            'created_at': s._json['user']['created_at'],
+            'retweet_count': s._json['retweet_count'],
+            'followers_count': s._json['user']['followers_count'],
+            'friends_count': s._json['user']['followers_count'],
+        })
+    data_dict['data'] = arr_dict
+    return data_dict
+    #print(data_dict)
+
 
 
 if __name__ == "__main__":
