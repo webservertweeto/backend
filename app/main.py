@@ -233,7 +233,7 @@ def showRecentTweets():
     arr_dict = []
 
     statuses = api.user_timeline(screen_name=screen_name, count=200)
-    s = statuses[0]
+    #s = statuses[0]
     # print(s._json['user']['profile_image_url'])
     # print(s._json['profile_image_url'])
 
