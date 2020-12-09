@@ -1158,7 +1158,7 @@ def addnewtwitteraccount():
             }
 
         
-        today = datetime.datetime.now()
+        today = datetime.now()
         dateString = str(today.month) + "/" + str(today.day) + "/" + str(today.year) 
         
         table.put_item(
@@ -1755,7 +1755,107 @@ def scheduleatweet():
 #Delete a scheduled tweet
 @app.route('/deleteascheduledtweet', methods = ["POST"])
 def deleteascheduledtweet():
-    pass
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        token = str(jsonData["token"])
+        tweetUUID = str(jsonData["uuid"])
+
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a token and tweet uuid"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+
+
+    #Authenticate the user
+    authResponse = authorizeuser(token = token)
+    if "Error" in authResponse["body"]:
+        return authResponse
+
+    #Update database
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+                
+        for attribute in userAttributes:
+            if attribute["Name"] == "email":
+                email = attribute["Value"]
+        
+
+
+        
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+
+        
+        tableName = "scheduledTweets"
+        table = dynamoDB.Table(tableName)
+
+
+        response = table.delete_item(
+            Key = {
+                "email": email,
+                "uuid": tweetUUID
+            }
+        )
+
+        body = {
+            "Success":"Your tweet has been deleted."
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error": "Something went wrong. Please try again later."
+        }
+        
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+    
 
 
 if __name__ == '__main__':
