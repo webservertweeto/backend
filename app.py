@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 import json
 import datetime
 import tweepy
+from datetime import datetime, timedelta
+import uuid
 
 app = Flask(__name__)
 application = app
@@ -26,6 +28,11 @@ CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 AWS_ACCESS_KEY_ID=os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY=os.environ.get("AWS_SECRET_ACCESS_KEY")
 REGION_NAME=os.environ.get("REGION_NAME")
+
+
+#----------------------------Custom Exceptions----------------------------#
+class InvalidTweet(Exception):
+    pass
 #----------------------------HELPER FUNCTIONS----------------------------#
 def authorizeuser(token):
     try:
@@ -144,6 +151,15 @@ def get_secret_hash(username,CLIENT_ID,CLIENT_SECRET):
     d2 = base64.b64encode(dig).decode()
     return d2
 
+def getUUID():
+    return str(uuid.uuid4())
+
+def calculateTotalSeconds(dt2, dt1):
+    timedelta = dt2 - dt1
+    return timedelta.total_seconds()
+
+def convertStringtoTime(dtString):
+    return datetime.strptime(dtString, '%Y-%m-%d %H:%M:%S')
 
 def getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret):
     auth = tweepy.OAuthHandler(consumerKey,consumerSecret)
@@ -982,6 +998,72 @@ def confirmpasswordreset():
 
 
 
+
+#Get Twitter Account Information
+@app.route('/gettwitteraccountinfo',methods = ["POST"])
+def gettwitteraccountinfo():
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        consumerKey = str(jsonData["consumerKey"])
+        consumerSecret = str(jsonData["consumerSecret"])
+        accessTokenKey = str(jsonData["accessTokenKey"])
+        accessTokenSecret = str(jsonData["accessTokenSecret"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }  
+
+    #Get Twitter Account Information
+    try: 
+        api = getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret)
+        data = api.me()
+        userDataJson = data._json
+        body = {}
+        body["twitterID"] = userDataJson["id_str"]
+        body["twitterHandle"] = userDataJson["screen_name"]
+        body["twitterFullName"] = userDataJson["name"]
+        body["twitterProfilePicture"] = userDataJson["profile_image_url"]
+        body["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }    
+
+
 #Cognito + Dynamo
 @app.route('/addnewtwitteraccount', methods = ["POST"])
 def addnewtwitteraccount():
@@ -1339,32 +1421,35 @@ def getlatesttweets():
 def getscheduledtweets():
     pass
 
+
+
 #Cognito + Dynamo
 @app.route('/scheduleatweet', methods = ["POST"])
 def scheduleatweet():
-    pass
-
-#Delete a scheduled tweet
-@app.route('/deleteascheduledtweet', methods = ["POST"])
-def deleteascheduledtweet():
-    pass
-
-
-#Get Twitter Account Information
-@app.route('/gettwitteraccountinfo',methods = ["POST"])
-def gettwitteraccountinfo():
-    
     #Verify input parameters
     try:
         jsonData = request.json
-        consumerKey = str(jsonData["consumerKey"])
-        consumerSecret = str(jsonData["consumerSecret"])
-        accessTokenKey = str(jsonData["accessTokenKey"])
-        accessTokenSecret = str(jsonData["accessTokenSecret"])
-    except Exception as e:
+        token = str(jsonData["token"])
+        twitterID = str(jsonData["twitterID"])
+        if "tweetText" in jsonData:
+            tweetText = str(jsonData["tweetText"])
+        else:
+            tweetText = None
+        if "tweetImage" in jsonData:
+            tweetImage = str(jsonData["tweetImage"]) #base 64
+            extension = str(jsonData["extension"])
+        else:
+            tweetImage = None
+        if tweetText is None and tweetImage is None:
+            raise InvalidTweet()
+
+        tweetTime = str(jsonData["tweetTime"])
+        #  '%Y-%m-%d %H:%M:%S'
+
+    except InvalidTweet:
         print(str(e))
         body = {
-            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+            "Error" : "You need to at least provide a text or image (or both). If you gave an image, please give an appropriate extension."
         }
         return {
             'statusCode': 400,
@@ -1376,19 +1461,147 @@ def gettwitteraccountinfo():
                 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
             },
             'body': body
-        }  
+        }
 
-    #Get Twitter Account Information
-    try: 
-        api = getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret)
-        data = api.me()
-        userDataJson = data._json
-        body = {}
-        body["twitterID"] = userDataJson["id_str"]
-        body["twitterHandle"] = userDataJson["screen_name"]
-        body["twitterFullName"] = userDataJson["name"]
-        body["twitterProfilePicture"] = userDataJson["profile_image_url"]
-        body["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide your aws token and twitterID, as well as a text or image  (or both), and a scheduled time"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+
+
+    #Authenticate the user
+    authResponse = authorizeuser(token = token)
+    if "Error" in authResponse["body"]:
+        return authResponse
+
+    #Update database
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+                
+        for attribute in userAttributes:
+            if attribute["Name"] == "email":
+                email = attribute["Value"]
+        
+
+
+        
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+
+        tableName = "users"
+        table = dynamoDB.Table(tableName)
+
+        response = table.get_item(
+            Key = {
+                "email": email,
+                "twitterID": twitterID
+            }
+        )
+
+        if "Item" in response:
+            item = response["Item"]
+        else:
+            body = {
+                "Error": "We couldn't your account in our database"
+            }
+            return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+        
+        tableName = "scheduledTweets"
+        table = dynamoDB.Table(tableName)
+
+        if tweetImage is not None:
+            s3 = boto3.client('s3',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+            #S3 - STORE BASE64 CODE IN S3
+
+            imageUUID = getUUID()
+            filePath = imageUUID+"image.txt"
+            image64KeyString = imageUUID + ".txt"
+            bucketName = "tweeto-images"
+            imageFile = open(filePath,"w")
+            imageFile.write(tweetImage)
+            imageFile.close()
+            s3.upload_file(filePath,bucketName,image64KeyString)
+            os.remove(filePath)
+
+            #S3 - CONVERT BASE64 CODE BACK TO IMAGE IN S3 AND GET PUBLIC URL
+            s3Resource = boto3.resource('s3',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+
+            publicImageUUID = getUUID()
+            bucketName = "tweeto-images-public"
+            fileName = publicImageUUID + extension
+
+            imageObject = s3Resource.Object(bucketName,fileName)
+            if extension == ".jpg":
+                imageObject.put(Body = base64.b64decode(tweetImage),ContentType = "image/jpeg")
+            elif extension == ".png":
+                imageObject.put(Body = base64.b64decode(tweetImage),ContentType = "image/png")         
+
+
+            object_url = "https://%s.s3.amazonaws.com/%s" % (bucketName, fileName)
+        else:
+            image64KeyString = ""
+            object_url = ""
+
+        table.put_item(
+            Item = {
+                'email': email,
+                'uuid': getUUID(),
+                "consumerKey" : item["consumerKey"],
+                "consumerSecret" : item["consumerSecret"],
+                "accessTokenKey": item["accessTokenKey"],
+                "accessTokenSecret": item["accessTokenSecret"],
+                "tweetText": tweetText,
+                "tweetTime": tweetTime,
+                "tweetImage": image64KeyString,
+                "tweetImageLink": object_url,
+                "extension": extension
+            })
+        
+        body = {
+            "Success":"We've scheduled your tweet"
+        }
         return {
             'statusCode': 200,
             'headers': {
@@ -1402,6 +1615,10 @@ def gettwitteraccountinfo():
         }
     except Exception as e:
         print(str(e))
+        body = {
+            "Error": "Something went wrong. Please try again later."
+        }
+        
         return {
             'statusCode': 500,
             'headers': {
@@ -1412,7 +1629,16 @@ def gettwitteraccountinfo():
                 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
             },
             'body': body
-        }    
+        }
+
+
+
+
+
+#Delete a scheduled tweet
+@app.route('/deleteascheduledtweet', methods = ["POST"])
+def deleteascheduledtweet():
+    pass
 
 
 if __name__ == '__main__':
