@@ -1478,7 +1478,7 @@ def getscheduledtweets():
         tableName = "scheduledTweets"
         table = dynamoDB.Table(tableName)
 
-        resposne = table.query(
+        response = table.query(
             KeyConditionExpression = Key('email').eq(email)
         )
 
@@ -1489,10 +1489,23 @@ def getscheduledtweets():
             "Data" : []
         }
 
-        
         for item in items:
+            api = getTweepyAPI(item["consumerKey"],item["consumerSecret"],item["accessTokenKey"],item["accessTokenSecret"])
+            data = api.me()
+            userDataJson = data._json
+            item["twitterHandle"] = userDataJson["screen_name"]
+            item["twitterFullName"] = userDataJson["name"]
+            item["twitterProfilePicture"] = userDataJson["profile_image_url"]
+            item["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
+            del item["accessTokenKey"]
+            del item["accessTokenSecret"]
+            del item["consumerSecret"]
+            del item["consumerKey"]
+            del item["extension"]
+            del item["email"]
+            del item["tweetImage"]
             body["Data"].append(item)
-        
+
         return {
             'statusCode': 200,
             'headers': {
@@ -1542,6 +1555,7 @@ def scheduleatweet():
             extension = str(jsonData["extension"])
         else:
             tweetImage = None
+            extension = None
         if tweetText is None and tweetImage is None:
             raise InvalidTweet()
 
