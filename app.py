@@ -398,12 +398,6 @@ def confirmsignup():
         jsonData = request.json
         username = str(jsonData["email"])
         code = str(jsonData["code"])
-        # consumerKey = str(jsonData["consumerKey"])
-        # consumerSecret = str(jsonData["consumerSecret"])
-        # accessTokenKey = str(jsonData["accessTokenKey"])
-        # accessTokenSecret = str(jsonData["accessTokenSecret"])
-        # twitterHandle = str(jsonData["twitterHandle"])
-        # twitterID = str(jsonData["twitterID"])
     except Exception as e:
         print(str(e))
         body = {
@@ -436,28 +430,6 @@ def confirmsignup():
         body = {
             "Success": "Your account has been verified! Please log in."
         }
-        
-        # tableName = "users"
-        # dynamoDB = boto3.resource('dynamodb',
-        #                         region_name=REGION_NAME,
-        #                         aws_access_key_id=AWS_ACCESS_KEY_ID,
-        #                         aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-        # table = dynamoDB.Table(tableName)
-        
-        # today = datetime.datetime.now()
-        # dateString = str(today.month) + "/" + str(today.day) + "/" + str(today.year) 
-        
-        # table.put_item(
-        #     Item = {
-        #         'email': username,
-        #         'twitterid':twitterID,
-        #         'twitterHandle': twitterHandle,
-        #         'consumerKey': consumerKey,
-        #         'consumerSecret': consumerSecret,
-        #         'accessTokenKey': accessTokenKey,
-        #         'accessTokenSecret': accessTokenSecret,
-        #         'dateJoined': dateString
-        #     })
         
         return {
             'statusCode': 200,
@@ -1087,7 +1059,6 @@ def addnewtwitteraccount():
         consumerSecret = str(jsonData["consumerSecret"])
         accessTokenKey = str(jsonData["accessTokenKey"])
         accessTokenSecret = str(jsonData["accessTokenSecret"])
-        twitterHandle = str(jsonData["twitterHandle"])
         twitterID = str(jsonData["twitterID"])
     except Exception as e:
         print(str(e))
@@ -1174,7 +1145,6 @@ def addnewtwitteraccount():
             Item = {
                 'email': userData["email"],
                 'twitterid':twitterID,
-                'twitterHandle': twitterHandle,
                 'consumerKey': consumerKey,
                 'consumerSecret': consumerSecret,
                 'accessTokenKey': accessTokenKey,
@@ -1183,7 +1153,7 @@ def addnewtwitteraccount():
             })
         
         body = {
-            "Success":"Your account has been registered."
+            "Success":"We've registered your Twitter Account to our website."
         }
         return {
             'statusCode': 200,
