@@ -1694,6 +1694,7 @@ def scheduleatweet():
                 "consumerSecret" : item["consumerSecret"],
                 "accessTokenKey": item["accessTokenKey"],
                 "accessTokenSecret": item["accessTokenSecret"],
+                "twitterID": twitterID,
                 "tweetText": tweetText,
                 "tweetTime": tweetTime,
                 "tweetImage": image64KeyString,
