@@ -11,6 +11,7 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 import json
 import datetime
+import tweepy
 
 app = Flask(__name__)
 application = app
@@ -143,6 +144,11 @@ def get_secret_hash(username,CLIENT_ID,CLIENT_SECRET):
     d2 = base64.b64encode(dig).decode()
     return d2
 
+
+def getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret):
+    auth = tweepy.OAuthHandler(consumerKey,consumerSecret)
+    auth.set_access_token(accessTokenKey,accessTokenSecret)
+    return tweepy.API(auth)
 
 #----------------------------ROUTES----------------------------#
 #Cognito
@@ -392,12 +398,12 @@ def confirmsignup():
         jsonData = request.json
         username = str(jsonData["email"])
         code = str(jsonData["code"])
-        consumerKey = str(jsonData["consumerKey"])
-        consumerSecret = str(jsonData["consumerSecret"])
-        accessTokenKey = str(jsonData["accessTokenKey"])
-        accessTokenSecret = str(jsonData["accessTokenSecret"])
-        twitterHandle = str(jsonData["twitterHandle"])
-        twitterID = str(jsonData["twitterID"])
+        # consumerKey = str(jsonData["consumerKey"])
+        # consumerSecret = str(jsonData["consumerSecret"])
+        # accessTokenKey = str(jsonData["accessTokenKey"])
+        # accessTokenSecret = str(jsonData["accessTokenSecret"])
+        # twitterHandle = str(jsonData["twitterHandle"])
+        # twitterID = str(jsonData["twitterID"])
     except Exception as e:
         print(str(e))
         body = {
@@ -431,27 +437,27 @@ def confirmsignup():
             "Success": "Your account has been verified! Please log in."
         }
         
-        tableName = "users"
-        dynamoDB = boto3.resource('dynamodb',
-                                region_name=REGION_NAME,
-                                aws_access_key_id=AWS_ACCESS_KEY_ID,
-                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-        table = dynamoDB.Table(tableName)
+        # tableName = "users"
+        # dynamoDB = boto3.resource('dynamodb',
+        #                         region_name=REGION_NAME,
+        #                         aws_access_key_id=AWS_ACCESS_KEY_ID,
+        #                         aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        # table = dynamoDB.Table(tableName)
         
-        today = datetime.datetime.now()
-        dateString = str(today.month) + "/" + str(today.day) + "/" + str(today.year) 
+        # today = datetime.datetime.now()
+        # dateString = str(today.month) + "/" + str(today.day) + "/" + str(today.year) 
         
-        table.put_item(
-            Item = {
-                'email': username,
-                'twitterid':twitterID,
-                'twitterHandle': twitterHandle,
-                'consumerKey': consumerKey,
-                'consumerSecret': consumerSecret,
-                'accessTokenKey': accessTokenKey,
-                'accessTokenSecret': accessTokenSecret,
-                'dateJoined': dateString
-            })
+        # table.put_item(
+        #     Item = {
+        #         'email': username,
+        #         'twitterid':twitterID,
+        #         'twitterHandle': twitterHandle,
+        #         'consumerKey': consumerKey,
+        #         'consumerSecret': consumerSecret,
+        #         'accessTokenKey': accessTokenKey,
+        #         'accessTokenSecret': accessTokenSecret,
+        #         'dateJoined': dateString
+        #     })
         
         return {
             'statusCode': 200,
@@ -1292,7 +1298,71 @@ def scheduleatweet():
 def deleteascheduledtweet():
     pass
 
+
+#Get Twitter Account Information
+@app.route('/gettwitteraccountinfo',methods = ["POST"])
+def gettwitteraccountinfo():
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        consumerKey = str(jsonData["consumerKey"])
+        consumerSecret = str(jsonData["consumerSecret"])
+        accessTokenKey = str(jsonData["accessTokenKey"])
+        accessTokenSecret = str(jsonData["accessTokenSecret"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide a consumer key, consumer secret, access token key, and access token secret."
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }  
+
+    #Get Twitter Account Information
+    try: 
+        api = getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret)
+        data = api.me()
+        userDataJson = data._json
+        body = {}
+        body["twitterID"] = userDataJson["id_str"]
+        body["twitterHandle"] = userDataJson["screen_name"]
+        body["twitterFullName"] = userDataJson["name"]
+        body["twitterProfilePicture"] = userDataJson["profile_image_url"]
+        body["twitterProfilePictureHttps"] = userDataJson["profile_image_url_https"]
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }    
+
+
 if __name__ == '__main__':
-
-
     app.run()
