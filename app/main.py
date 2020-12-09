@@ -210,7 +210,7 @@ def sendTweet():
 #-----------------------------------------------------------------------------#
 
 @app.route('/showRecentTweets', methods=['POST'])
-def showRecentTweets():
+def showRecentTweets(screen_name)):
     #     ASSUME THE DATABASE GIVES YOU THE FOLLOWING:
     # ⦁    consumer key
     # ⦁    consumer secret
