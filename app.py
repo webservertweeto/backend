@@ -1059,11 +1059,10 @@ def addnewtwitteraccount():
         consumerSecret = str(jsonData["consumerSecret"])
         accessTokenKey = str(jsonData["accessTokenKey"])
         accessTokenSecret = str(jsonData["accessTokenSecret"])
-        twitterID = str(jsonData["twitterID"])
     except Exception as e:
         print(str(e))
         body = {
-            "Error" : "You must provide a token, twitter handle, twitter id, consumer key, consumer secret, access token key, and access token secret."
+            "Error" : "You must provide a token, consumer key, consumer secret, access token key, and access token secret."
         }
         return {
             'statusCode': 400,
@@ -1116,6 +1115,11 @@ def addnewtwitteraccount():
             KeyConditionExpression = Key('email').eq(userData["email"])
         )
 
+
+        api = getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret)
+        data = api.me()
+        userDataJson = data._json
+        twitterID = userDataJson["id_str"]
         
         items = response["Items"]
 
