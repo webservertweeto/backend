@@ -13,9 +13,14 @@ Activate (on Mac):
 . venv/bin/activate
 ```
 
+```concole
+pip install -r requirements.txt
+```
+
 ```console
 pip install Flask
 export FLASK_APP=main.py
 flask run
 ```
+
 
