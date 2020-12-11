@@ -24,3 +24,7 @@ flask run
 ```
 
 
+## Contributors
+<p>Jorge Quiroz</p>
+<p>Arun Ajay</p>
+<p>Jiseon Yu</p>
