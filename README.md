@@ -25,6 +25,10 @@ flask run
 
 
 ## Contributors
-<p>Jorge Quiroz</p>
-<p>Arun Ajay</p>
-<p>Jiseon Yu</p>
+
+| Name          | Github        | 
+| ------------- | ------------- | 
+| Jorge Quiroz  | @JQuiroz728  | 
+| Arun Ajay  | @arun-ajay  |
+| Jiseon Yu | @JiseonYu  | 
+
