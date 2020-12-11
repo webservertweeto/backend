@@ -14,9 +14,10 @@ import datetime
 import tweepy
 from datetime import datetime, timedelta
 import uuid
-
-app = Flask(__name__)
-application = app
+import io
+import time
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 #----------------------------ENVIRONMENT VARIABLES----------------------------#
@@ -154,9 +155,14 @@ def get_secret_hash(username,CLIENT_ID,CLIENT_SECRET):
 def getUUID():
     return str(uuid.uuid4())
 
-def calculateTotalSeconds(dt2, dt1):
-    timedelta = dt2 - dt1
-    return timedelta.total_seconds()
+def compareDates(scheduledTime):
+    #timedelta = dt2 - dt1
+    scheduledTime = convertStringtoTime(scheduledTime)
+    if scheduledTime < datetime.now():
+        return True
+    else:
+        return False
+    #return timedelta.total_seconds()
 
 def convertStringtoTime(dtString):
     return datetime.strptime(dtString, '%Y-%m-%d %H:%M:%S')
@@ -165,6 +171,87 @@ def getTweepyAPI(consumerKey,consumerSecret,accessTokenKey,accessTokenSecret):
     auth = tweepy.OAuthHandler(consumerKey,consumerSecret)
     auth.set_access_token(accessTokenKey,accessTokenSecret)
     return tweepy.API(auth)
+
+
+
+app = Flask(__name__)
+application = app
+
+
+
+
+# #----------------------------Scheduler----------------------------#
+# def sendtweet():
+#     dynamoDB = boto3.resource('dynamodb',
+#                             region_name=REGION_NAME,
+#                             aws_access_key_id=AWS_ACCESS_KEY_ID,
+#                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    
+#     s3Resource = boto3.resource('s3',
+#                             region_name=REGION_NAME,
+#                             aws_access_key_id=AWS_ACCESS_KEY_ID,
+#                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+#     bucketName = "tweeto-images"
+#     tableName = "scheduledTweets"
+#     table = dynamoDB.Table(tableName)
+
+#     response = table.scan()
+
+#     if "Items" in response:
+#         items = response["Items"]
+
+#     needToSend = []
+#     print()
+#     print("Items from database")
+#     for item in items:
+#         print(item)
+#         if compareDates(item["tweetTime"]):
+#             print("need to send")
+#             needToSend.append(item)
+    
+#     print()
+#     print("Items you need to send")
+#     for queuedItem in needToSend:
+#         #Send the tweet to twitter
+#         print(queuedItem)
+#         try:
+#             api = getTweepyAPI(queuedItem["consumerKey"],queuedItem["consumerSecret"],queuedItem["accessTokenKey"],queuedItem["accessTokenSecret"])
+#             if len(queuedItem["tweetImage"]) > 0:
+#                 s3Obj = s3Resource.Object(bucketName,queuedItem["tweetImage"])
+#                 imageBase64 = s3Obj.get()["Body"].read().decode("utf-8")
+#                 imageBase64 = base64.b64decode(imageBase64)
+#                 uuid = getUUID()
+#                 imageFile = uuid + queuedItem["extension"]
+#                 with open(imageFile,'wb') as f:
+#                     f.write(imageBase64)
+#                 #print(imageBase64)
+#                 print("before tweepy")
+#                 print(queuedItem["tweetText"])
+#                 api.update_with_media(filename = imageFile, status = queuedItem["tweetText"]+getUUID())
+#                 print("after tweepy")
+#                 os.remove(imageFile)
+#             else:
+#                 #print(queuedItem["tweetText"])
+#                 print("before tweepy")
+#                 print(queuedItem["tweetText"])
+#                 response = api.update_status(status=queuedItem["tweetText"]+getUUID())
+#                 print(response)
+#                 print("after tweepy")
+#             #Delete the tweet from DynamoDB
+#         except Exception as e:
+#             print(Exception)
+#             print(str(e))
+#     print()
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 10)
+# scheduler.start()
+
+# atexit.register(lambda : scheduler.shutdown())
+
+
+
+
+
 
 #----------------------------ROUTES----------------------------#
 #Cognito
@@ -1204,6 +1291,148 @@ def addnewtwitteraccount():
             'body': body
         }
  
+
+#Cognito + Dynamo
+@app.route('/deleteatwitteraccount',methods = ["POST"])
+def deleteatwitteraccount():
+    
+    #Verify input parameters
+    try:
+        jsonData = request.json
+        token = str(jsonData["token"])
+        twitterID = str(jsonData["twitterID"])
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error" : "You must provide an AWS access token and twitterID"
+        }
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+
+    #Authenticate the user
+    authResponse = authorizeuser(token = token)
+    if "Error" in authResponse["body"]:
+        return authResponse
+
+    #Update database
+    try:
+        client = boto3.client('cognito-idp',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        
+        resp = client.get_user(
+            AccessToken = token
+           )
+        
+        userAttributes = resp["UserAttributes"]
+        
+        
+        
+        for attribute in userAttributes:
+            if attribute["Name"] == "email":
+                email = attribute["Value"]
+        
+        tableName = "users"
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        table = dynamoDB.Table(tableName)
+
+
+        response = table.delete_item(
+            Key = {
+                "email": email,
+                "twitterID": twitterID
+            }
+        )
+
+
+        
+        
+        tableName = "scheduledTweets"
+        dynamoDB = boto3.resource('dynamodb',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        table = dynamoDB.Table(tableName)
+
+        response = table.query(
+            KeyConditionExpression = Key('email').eq(email)
+        )
+
+        
+        s3 = boto3.resource('s3',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        items = response["Items"]
+        for item in items:
+            if item["twitterID"] == twitterID:
+                print("found tweet")
+                if len(item["tweetImageLink"]) > 0:
+                    print("found image to delete")
+                    bucketName = "tweeto-images-public"
+                    tweetImageLink = item["tweetImageLink"]
+                    if tweetImageLink.startswith("https://tweeto-images-public.s3.amazonaws.com/"):
+                        tweetImageLink = tweetImageLink[len("https://tweeto-images-public.s3.amazonaws.com/"):]
+                    print(tweetImageLink)
+                    s3.Object(bucketName,tweetImageLink).delete()
+
+                    bucketName = "tweeto-images"
+                    tweetImage = item["tweetImage"]
+                    s3.Object(bucketName,tweetImage).delete()
+
+                table.delete_item(
+                    Key = {
+                        "email": email,
+                        "uuid": item["uuid"]
+                    }
+                )
+
+        
+        body = {
+            "Success":"We've completely deleted your account from our system"
+        }
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    except Exception as e:
+        print(str(e))
+        body = {
+            "Error": "Something went wrong. Please try again later."
+        }
+        
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Headers': 'Content-Type,Origin,X-Amz-Date,Authorization,X-Api-Key,x-requested-with,Access-Control-Allow-Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': True,
+                'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+            },
+            'body': body
+        }
+    
 
 #Twitter
 @app.route('/getlatesttweets', methods = ["POST"])
