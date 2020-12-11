@@ -2047,10 +2047,31 @@ def deleteascheduledtweet():
         table = dynamoDB.Table(tableName)
 
 
-        response = table.delete_item(
+        response = table.get_item(
             Key = {
                 "email": email,
                 "uuid": tweetUUID
+            }
+        )
+
+        item = response["item"]
+
+        
+        if len(item["tweetImageLink"]) > 0:
+            bucketName = "tweeto-images-public"
+            tweetImageLink = item["tweetImageLink"]
+            if tweetImageLink.startswith("https://tweeto-images-public.s3.amazonaws.com/"):
+                tweetImageLink = tweetImageLink[len("https://tweeto-images-public.s3.amazonaws.com/"):]
+            s3.Object(bucketName,tweetImageLink).delete()
+
+            bucketName = "tweeto-images"
+            tweetImage = item["tweetImage"]
+            s3.Object(bucketName,tweetImage).delete()
+
+        table.delete_item(
+            Key = {
+                "email": email,
+                "uuid": item["uuid"]
             }
         )
 
