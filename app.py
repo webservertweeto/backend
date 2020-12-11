@@ -180,73 +180,78 @@ application = app
 
 
 
-# #----------------------------Scheduler----------------------------#
-# def sendtweet():
-#     dynamoDB = boto3.resource('dynamodb',
-#                             region_name=REGION_NAME,
-#                             aws_access_key_id=AWS_ACCESS_KEY_ID,
-#                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+#----------------------------Scheduler----------------------------#
+def sendtweet():
+    dynamoDB = boto3.resource('dynamodb',
+                            region_name=REGION_NAME,
+                            aws_access_key_id=AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
     
-#     s3Resource = boto3.resource('s3',
-#                             region_name=REGION_NAME,
-#                             aws_access_key_id=AWS_ACCESS_KEY_ID,
-#                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-#     bucketName = "tweeto-images"
-#     tableName = "scheduledTweets"
-#     table = dynamoDB.Table(tableName)
-
-#     response = table.scan()
-
-#     if "Items" in response:
-#         items = response["Items"]
-
-#     needToSend = []
-#     print()
-#     print("Items from database")
-#     for item in items:
-#         print(item)
-#         if compareDates(item["tweetTime"]):
-#             print("need to send")
-#             needToSend.append(item)
+    s3Resource = boto3.resource('s3',
+                            region_name=REGION_NAME,
+                            aws_access_key_id=AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
     
-#     print()
-#     print("Items you need to send")
-#     for queuedItem in needToSend:
-#         #Send the tweet to twitter
-#         print(queuedItem)
-#         try:
-#             api = getTweepyAPI(queuedItem["consumerKey"],queuedItem["consumerSecret"],queuedItem["accessTokenKey"],queuedItem["accessTokenSecret"])
-#             if len(queuedItem["tweetImage"]) > 0:
-#                 s3Obj = s3Resource.Object(bucketName,queuedItem["tweetImage"])
-#                 imageBase64 = s3Obj.get()["Body"].read().decode("utf-8")
-#                 imageBase64 = base64.b64decode(imageBase64)
-#                 uuid = getUUID()
-#                 imageFile = uuid + queuedItem["extension"]
-#                 with open(imageFile,'wb') as f:
-#                     f.write(imageBase64)
-#                 #print(imageBase64)
-#                 print("before tweepy")
-#                 print(queuedItem["tweetText"])
-#                 api.update_with_media(filename = imageFile, status = queuedItem["tweetText"]+getUUID())
-#                 print("after tweepy")
-#                 os.remove(imageFile)
-#             else:
-#                 #print(queuedItem["tweetText"])
-#                 print("before tweepy")
-#                 print(queuedItem["tweetText"])
-#                 response = api.update_status(status=queuedItem["tweetText"]+getUUID())
-#                 print(response)
-#                 print("after tweepy")
-#             #Delete the tweet from DynamoDB
-#         except Exception as e:
-#             print(Exception)
-#             print(str(e))
-#     print()
-# scheduler = BackgroundScheduler()
-# scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 10)
-# scheduler.start()
+    tableName = "scheduledTweets"
+    table = dynamoDB.Table(tableName)
 
-# atexit.register(lambda : scheduler.shutdown())
+    response = table.scan()
+
+    if "Items" in response:
+        items = response["Items"]
+
+    needToSend = []
+    for item in items:
+        if compareDates(item["tweetTime"]):
+            needToSend.append(item)
+    
+
+    print("items that will be tweeted")
+
+    for queuedItem in needToSend:
+        #Send the tweet to twitter
+        print(queuedItem)
+        try:
+            api = getTweepyAPI(queuedItem["consumerKey"],queuedItem["consumerSecret"],queuedItem["accessTokenKey"],queuedItem["accessTokenSecret"])
+            if len(queuedItem["tweetImage"]) > 0:
+                bucketName = "tweeto-images"
+                s3Obj = s3Resource.Object(bucketName,queuedItem["tweetImage"])
+                imageBase64 = s3Obj.get()["Body"].read().decode("utf-8")
+                imageBase64 = base64.b64decode(imageBase64)
+                uuid = getUUID()
+                imageFile = uuid + queuedItem["extension"]
+                with open(imageFile,'wb') as f:
+                    f.write(imageBase64)
+                #print(imageBase64)
+                api.update_with_media(filename = imageFile, status = queuedItem["tweetText"]+getUUID())
+                os.remove(imageFile)
+
+                bucketName = "tweeto-images-public"
+                tweetImageLink = queuedItem["tweetImageLink"]
+                if tweetImageLink.startswith("https://tweeto-images-public.s3.amazonaws.com/"):
+                    tweetImageLink = tweetImageLink[len("https://tweeto-images-public.s3.amazonaws.com/"):]
+                s3Resource.Object(bucketName,tweetImageLink).delete()
+
+                bucketName = "tweeto-images"
+                tweetImage = queuedItem["tweetImage"]
+                s3Resource.Object(bucketName,tweetImage).delete()
+            else:
+                response = api.update_status(status=queuedItem["tweetText"]+getUUID())
+            #Delete the tweet from DynamoDB
+            table.delete_item(
+                Key = {
+                    "email": queuedItem["email"],
+                    "uuid": queuedItem["uuid"]
+                }
+            )
+        except Exception as e:
+            print(str(e))
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 60)
+scheduler.start()
+
+atexit.register(lambda : scheduler.shutdown())
 
 
 
@@ -1379,14 +1384,11 @@ def deleteatwitteraccount():
         items = response["Items"]
         for item in items:
             if item["twitterID"] == twitterID:
-                print("found tweet")
                 if len(item["tweetImageLink"]) > 0:
-                    print("found image to delete")
                     bucketName = "tweeto-images-public"
                     tweetImageLink = item["tweetImageLink"]
                     if tweetImageLink.startswith("https://tweeto-images-public.s3.amazonaws.com/"):
                         tweetImageLink = tweetImageLink[len("https://tweeto-images-public.s3.amazonaws.com/"):]
-                    print(tweetImageLink)
                     s3.Object(bucketName,tweetImageLink).delete()
 
                     bucketName = "tweeto-images"
