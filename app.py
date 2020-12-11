@@ -248,7 +248,7 @@ def sendtweet():
             print(str(e))
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 60)
+scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 600)
 scheduler.start()
 
 atexit.register(lambda : scheduler.shutdown())
