@@ -13,7 +13,7 @@ Activate (on Mac):
 . venv/bin/activate
 ```
 
-```concole
+```console
 pip install -r requirements.txt
 ```
 
