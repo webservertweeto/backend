@@ -2054,8 +2054,13 @@ def deleteascheduledtweet():
             }
         )
 
-        item = response["item"]
+        item = response["Item"]
 
+
+        s3 = boto3.resource('s3',
+                                region_name=REGION_NAME,
+                                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
         
         if len(item["tweetImageLink"]) > 0:
             bucketName = "tweeto-images-public"
