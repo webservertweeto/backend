@@ -1,12 +1,14 @@
 # Tweeto <img src = "/images/twitter_icon.png"/>
+
+## Overview
 <p>Our application intends to serve as a service that allows users to tweet at a later time. Users will have the capability of setting what day/time a tweet should be sent and they have the option 
 to delete that queued tweet before the deadline.  In addition, they can send out multiple tweets at different times. </p>
 
-## How to Start:
+## Getting Started
 <p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Acceess token</strong>, <strong>Access token secret</strong>. These credentials are a requirement if you are going to access the Twitter API.
 </p>
 
-### Setup Twitter Developer Account and App 
+### Setup Twitter Developer Account and App (Requirements)
 <ol>
   <li> Create a twitter account if you do not already have one. </li>
   <li> <a href="https://developer.twitter.com/en/apply/user"> Apply for a twitter developer account. </a> </li>
@@ -42,6 +44,9 @@ export FLASK_APP=app.py
 flask run
 ```
 
+## References Used
+<p><a href="https://developer.twitter.com/en/portal/dashboard">Twitter Developers</a> - Twitter Developer Tool </p>
+<p> <a href="http://docs.tweepy.org/en/latest/">Tweepy</a> - Tweepy Documentation </p>
 
 ## Contributors
 
