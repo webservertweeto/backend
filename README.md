@@ -22,6 +22,32 @@ to delete that queued tweet before the deadline.  In addition, they can send out
   <li> Click App permissions Edit button and enable <strong>Read, write and access Direct Messages<strong>. </li>
 </ol>
 
+## Requirements
+- APScheduler==3.6.3
+- boto3==1.16.30
+- botocore==1.19.30
+- certifi==2020.12.5
+- chardet==3.0.4
+- click==7.1.2
+- Flask==1.1.2
+- idna==2.10
+- itsdangerous==1.1.0
+- Jinja2==2.11.2
+- jmespath==0.10.0
+- MarkupSafe==1.1.1
+- oauthlib==3.1.0
+- PySocks==1.7.1
+- python-dateutil==2.8.1
+- python-dotenv==0.15.0
+- pytz==2020.4
+- requests==2.25.0
+- requests-oauthlib==1.3.0
+- s3transfer==0.3.3
+- six==1.15.0
+- tweepy==3.9.0
+- tzlocal==2.1
+- urllib3==1.26.2
+- Werkzeug==1.0.1
 
 
 ## Flask Quickstart:
