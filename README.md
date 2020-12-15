@@ -1,7 +1,7 @@
 # Tweeto <img src = "/images/twitter_icon.png"/>
 
 ## Overview
-<p>Our application intends to serve as a service that allows users to tweet at a later time. Users will have the capability of setting what day/time a tweet should be sent and they have the option to delete that queued tweet before the deadline. Users have the option to schedule multiple tweets. We've also included the option to upload images as well. For power-users who have multiple twitter accounts to manage, we've given them the ability to register additional accounts.</p>
+<p>Our backend server intends to serve as an API that allows users to tweet at a later time. Users will have the capability of setting what day/time a tweet should be sent and they have the option to delete that queued tweet before the deadline. Users have the option to schedule multiple tweets. We've also included the option to upload images as well. For power-users who have multiple twitter accounts to manage, we've given them the ability to register additional accounts.</p>
 
 ## Getting Started
 
