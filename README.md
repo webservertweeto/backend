@@ -94,6 +94,7 @@ The application will provide several pieces of data: user data, token data, and 
 - Scheduled tweets are a list of tweets that the front-end can use to mock the tweet prior to it being sent. 
 - Token data is provided when a user signs in
 </p>
+
 `User`(strings mocked with UUID for privacy):
 
 ```javascript
