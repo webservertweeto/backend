@@ -76,7 +76,7 @@ AWS_SECRET_ACCESS_KEY=Get_this_from_AWS
 REGION_NAME=Get_this_from_AWS
 ```
 
-### FOR SERVER - ADMINISTRATORS Downloading repo, installing dependencies and running application
+### FOR SERVER - ADMINISTRATORS - Downloading repo, installing dependencies and running application
 
 <i>Windows 10 Instructions Using Git Bash
   
