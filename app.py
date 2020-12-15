@@ -223,7 +223,7 @@ def sendtweet():
                 with open(imageFile,'wb') as f:
                     f.write(imageBase64)
                 #print(imageBase64)
-                api.update_with_media(filename = imageFile, status = queuedItem["tweetText"]+getUUID())
+                api.update_with_media(filename = imageFile, status = queuedItem["tweetText"])
                 os.remove(imageFile)
 
                 bucketName = "tweeto-images-public"
@@ -248,7 +248,7 @@ def sendtweet():
             print(str(e))
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 600)
+scheduler.add_job(func = sendtweet, trigger = "interval", seconds = 120)
 scheduler.start()
 
 atexit.register(lambda : scheduler.shutdown())
