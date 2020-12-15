@@ -116,7 +116,7 @@ flask run
 ### Python Version
 - Python 3.8.5
 
-### Depencendies 
+### Dependencies 
 - APScheduler==3.6.3
 - boto3==1.16.30
 - botocore==1.19.30
