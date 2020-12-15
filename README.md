@@ -81,6 +81,37 @@ The application will provide several pieces of data: user data, token data, and 
 }
 ```
 
+`Scheduled Tweets`(strings mocked with UUID for privacy):
+
+```javascript
+{
+    "Data": [
+        {
+            "tweetImageLink": "https://tweeto-images-public.s3.amazonaws.com/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg",
+            "tweetText": "Hello 123!",
+            "tweetTime": "2020-12-10 12:32:10",
+            "twitterFullName": "John Smith
+            "twitterHandle": "SmithJoy"
+            "twitterID": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+            "twitterProfilePicture": "http://pbs.twimg.com/profile_images/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg",
+            "twitterProfilePictureHttps": "https://pbs.twimg.com/profile_images/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg",
+            "uuid": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e"
+        },
+        {
+            "tweetImageLink": "",
+            "tweetText": "I love coding!",
+            "tweetTime": "2020-12-10 12:32:10",
+            "twitterFullName": "John Smith2"
+            "twitterHandle": "SmithJohnny"
+            "twitterID": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+            "twitterProfilePicture": "http://pbs.twimg.com/profile_images/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg",
+            "twitterProfilePictureHttps": "https://pbs.twimg.com/profile_images/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg",
+            "uuid": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e"
+        }
+    ]
+}
+```
+
 ## Flask Quickstart:
 
 ### Create virtual env
