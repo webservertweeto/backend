@@ -76,6 +76,20 @@ AWS_SECRET_ACCESS_KEY=Get_this_from_AWS
 REGION_NAME=Get_this_from_AWS
 ```
 
+### FOR SERVER - ADMINISTRATORS Downloading repo, installing dependencies and running application
+
+<i>Windows 10 Instructions Using Git Bash
+  
+  Please note some variables may be specific to your machine such as "python"</i>
+```console
+git clone "https://github.com/webservertweeto/backend.git"
+cd backend/
+python -m venv env
+. env/Scripts/activate
+pip install -r requirements.txt
+export FLASK_APP=app.py
+flask run
+```
 
 ### FOR USERS - Setup Twitter Developer Account and App (Requirements)
 <p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Access token</strong>, <strong>Access token secret</strong>. We will be tweeting your scheduled tweets on your behalf; therefore, we'll need this information beforehand.
@@ -93,20 +107,7 @@ REGION_NAME=Get_this_from_AWS
   <li> Click App permissions Edit button and enable <strong>Read, write and access Direct Messages</strong>. </li>
 </ol>
 
-### Downloading repo, installing dependencies and running application...
 
-<i>Windows 10 Instructions Using Git Bash
-  
-  Please note some variables may be specific to your machine such as "python"</i>
-```console
-git clone "https://github.com/webservertweeto/backend.git"
-cd backend/
-python -m venv env
-. env/Scripts/activate
-pip install -r requirements.txt
-export FLASK_APP=app.py
-flask run
-```
 
 
 
