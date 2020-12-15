@@ -38,9 +38,9 @@ We'll need two buckets `tweeto-images` and `tweeto-images-public`
 
 `tweeto-images` must be public
 
-Make sure all settings are turned off for blocking public access under permissions. 
+- Make sure all settings are turned off for blocking public access under permissions. 
 
-Under Bucket policy of permissions use the following policy
+- Under Bucket policy of permissions use the following policy
 ```json
 {
     "Version": "2012-10-17",
