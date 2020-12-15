@@ -34,7 +34,7 @@ REGION_NAME=Get_this_from_AWS
   <li> Check your email associated with your twitter and click Confirm your email. </li>
   <li> On the welcome screen, click on Create an app. </li>
   <li> First, click on your <strong>API key</strong> and <strong>API secret key</strong>. Second, click on create to get <strong>Access access token</strong> and <strong>access token secret</strong>. </li>
-  <li> Click App permissions Edit button and enable <strong>Read, write and access Direct Messages<strong>. </li>
+  <li> Click App permissions Edit button and enable <strong>Read, write and access Direct Messages</strong>. </li>
 </ol>
 
 ### Downloading repo, installing dependencies and running application...
@@ -55,6 +55,7 @@ flask run
 
 
 ## Requirements
+
 ### Python Version
 - Python 3.8.5
 
