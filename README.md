@@ -5,8 +5,27 @@
 
 ## Getting Started
 
+### FOR SERVER ADMINISTRATORS - AWS Setup
+
+<strong>DynamoDB</strong>
+
+We'll need two tables `users` and `scheduledTweets`. Please ensure you have the following setup for each of your tables
+
+<ul>
+  <li> TableName - "users" </li>
+    <ul>
+      <li> Partition Key - "email"</li>  
+      <li> Sort Key - "twitterID"</li>
+    </ul>
+  <li> TableName - "scheduledTweets" </li>
+    <ul>
+      <li> Partition Key - "email"</li>  
+      <li> Sort Key - "uuid"</li>
+    </ul>
+</ul>
+
 ### FOR SERVER ADMINISTRATORS - `.env` Setup
-This server uses several environment variables in order to run properly. Store this `.env` file in the same path as `app.py`
+Store this `.env` file in the same path as `app.py`
 
 ```python
 USER_POOL_ID=Get_this_from_Cognito
@@ -16,10 +35,7 @@ AWS_ACCESS_KEY_ID=Get_this_from_AWS
 AWS_SECRET_ACCESS_KEY=Get_this_from_AWS
 REGION_NAME=Get_this_from_AWS
 ```
-### FOR SERVER ADMINISTRATORS - AWS Setup
 
-<i>DynamoDB</i>
-<p>We'll need </p>
 
 ### FOR USERS - Setup Twitter Developer Account and App (Requirements)
 <p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Access token</strong>, <strong>Access token secret</strong>. We will be tweeting your scheduled tweets on your behalf; therefore, we'll need this information beforehand.
