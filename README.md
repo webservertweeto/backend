@@ -23,9 +23,9 @@ to delete that queued tweet before the deadline.  In addition, they can send out
   <li> Click App permissions Edit button and enable <strong>Read, write and access Direct Messages<strong>. </li>
 </ol>
 
-### Create virtual env
+### Downloading repo, installing dependencies and running application...
 
-<i>Activate (on Windows) 
+<i>Windows 10 Instructions Using Git Bash
   
   Please note some variables may be specific to your machine such as "python"</i>
 ```console
