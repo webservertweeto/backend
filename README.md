@@ -220,7 +220,7 @@ The application will provide several pieces of data: user data, token data, and 
 ```
 
 ## Site map
-<img src = "./images/site_map.png" width="70%" heigth ="auto">
+<img src = "./images/site_map.png" width="100%" heigth ="auto">
 
 ## User Stores or Use Cases
 
