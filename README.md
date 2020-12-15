@@ -218,8 +218,22 @@ The application will provide several pieces of data: user data, token data, and 
 }
 ```
 
+## Site map
+TO-DO
 
+## User Stores or Use Cases
 
+<ul>
+  <li> As a non-registered user, I can create a new account on the site.</li>
+
+  <li> As a user, register a twitter account to my Tweeto account.</li>
+  <li> As a user, deregister a twitter account from my Tweeto account.</li>
+  <li> As a user, schedule a tweet. These tweets can consist of a text, image or both.</li>
+  <li> As a user, delete a scheduled tweet.</li>
+  <li> As a user, view my scheduled tweets.</li>
+  <li> As a user, view my latest tweets.</li>
+  <li> As a user, view my registered accounts.</li>
+</ul>
 
 
 ## References Used
