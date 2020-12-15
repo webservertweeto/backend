@@ -65,7 +65,7 @@ For cognito, under attributes make sure you select Email address or phone number
 Under App clients set up a new App client in order to acquire a `CLIENT_ID` and `CLIENT_SECRET` which are used in our `.env` file mentioned below.
 
 ### FOR SERVER ADMINISTRATORS - `.env` Setup
-Store this `.env` file in the same path as `app.py`
+Store this `.env` file in the same directory level as `app.py`
 
 ```python
 USER_POOL_ID=Get_this_from_Cognito
