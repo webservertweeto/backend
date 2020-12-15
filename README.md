@@ -34,9 +34,9 @@ We'll need two tables `users` and `scheduledTweets`. Please ensure you have the 
 
 We'll need two buckets `tweeto-images` and `tweeto-images-public`
 
-`tweeto-images` doesn't require any setup
+`tweeto-images` doesn't require any special setup
 
-`tweeto-images` must be public
+`tweeto-images-public` must be public
 
 - Make sure all settings are turned off for blocking public access under permissions. 
 
