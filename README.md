@@ -1,8 +1,7 @@
 # Tweeto <img src = "/images/twitter_icon.png"/>
 
 ## Overview
-<p>Our application intends to serve as a service that allows users to tweet at a later time. Users will have the capability of setting what day/time a tweet should be sent and they have the option 
-to delete that queued tweet before the deadline.  In addition, they can send out multiple tweets at different times. </p>
+<p>Our application intends to serve as a service that allows users to tweet at a later time. Users will have the capability of setting what day/time a tweet should be sent and they have the option to delete that queued tweet before the deadline. Users have the option to schedule multiple tweets. We've also included the option to upload images as well. For power-users who have multiple twitter accounts to manage, we've given them the ability to register additional accounts.</p>
 
 ## Getting Started
 <p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Acceess token</strong>, <strong>Access token secret</strong>. These credentials are a requirement if you are going to access the Twitter API.
