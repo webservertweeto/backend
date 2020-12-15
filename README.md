@@ -146,12 +146,12 @@ flask run
 
 ## Data Model
 
-<p>
+
 The application will provide several pieces of data: user data, token data, and scheduled tweets.
+  
 - A user can have many accounts
 - Scheduled tweets are a list of tweets that the front-end can use to mock the tweet prior to it being sent. 
 - Token data is provided when a user signs in
-</p>
 
 #### User
 
