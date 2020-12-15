@@ -219,7 +219,7 @@ The application will provide several pieces of data: user data, token data, and 
 }
 ```
 
-## Screenshots 
+## Screenshoots 
 
 ### Welcome page 
 <img src = "./images/main.png" width="50%" heigth ="auto">
