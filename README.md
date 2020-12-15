@@ -246,7 +246,7 @@ TO-DO
 
 | Name          | Github        | 
 | ------------- | ------------- | 
-| Jorge Quiroz  | @JQuiroz728  | 
-| Arun Ajay  | @arun-ajay  |
-| Jiseon Yu | @JiseonYu  | 
+| Jorge Quiroz  | <a href="https://github.com/JQuiroz728">@JQuiroz728</a>  | 
+| Arun Ajay  | <a href="https://github.com/arun-ajay">@arun-ajay</a>  |
+| Jiseon Yu | <a href="https://github.com/JiseonYu">@JiseonYu</a> | 
 
