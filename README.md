@@ -219,31 +219,8 @@ The application will provide several pieces of data: user data, token data, and 
 }
 ```
 
-## Screenshoots 
-
-### Welcome page 
-<img src = "./images/main.png" width="50%" heigth ="auto">
-
-### Sign Up page
-<img src = "./images/Sign_up_page.png" width="50%" heigth ="auto">
-
-### Sign In page
-<img src = "./images/Sign_in_page.png" width="50%" heigth ="auto">
-
-### Confirm page 
-<img src = "./images/Confirm_code_page.png" width="50%" heigth ="auto">
-
-### Initial Dashboard page
-<img src = "./images/no_tweets.png" width="50%" heigth ="auto">
-
-### Dashboard page 
-<img src = "./images/dashboard.png" width="50%" heigth ="auto">
-
-
-
-
 ## Site map
-TO-DO
+<img src = "./images/site_map.png" width="70%" heigth ="auto">
 
 ## User Stores or Use Cases
 
