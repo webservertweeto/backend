@@ -28,16 +28,8 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 <i>Activate (on Mac)</i>
 ```console
 python3 -m venv venv
-:
 . venv/bin/activate
-```
-
-```console
 pip install -r requirements.txt
-```
-
-```console
-pip install Flask
 export FLASK_APP=app.py
 flask run
 ```
