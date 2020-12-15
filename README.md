@@ -7,7 +7,11 @@
 
 ### FOR SERVER ADMINISTRATORS - AWS Setup
 
-<strong>DynamoDB</strong>
+#### AWS Access Keys
+
+Contact your AWS System Administrator in order to receive these keys. They will be used in the `.env` file.
+
+#### DynamoDB
 
 We'll need two tables `users` and `scheduledTweets`. Please ensure you have the following setup for each of your tables
 
@@ -23,6 +27,40 @@ We'll need two tables `users` and `scheduledTweets`. Please ensure you have the 
       <li> Sort Key - "uuid"</li>
     </ul>
 </ul>
+
+#### S3
+
+We'll need two buckets `tweeto-images` and `tweeto-images-public`
+
+`tweeto-images` doesn't require any setup
+
+`tweeto-images` must be public
+
+Make sure all settings are turned off for blocking public access under permissions. 
+
+Under Bucket policy of permissions use the following policy
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowPublicRead",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::tweeto-images-public/*"
+        }
+    ]
+}
+```
+
+#### Cognito
+
+For cognito, under attributes make sure you select Email address or phone number and allow email addresses. Check enable case sensitivity for username input. Leave the rest as default.
+
+Under App clients set up a new App client in order to acquire a `CLIENT_ID` and `CLIENT_SECRET` which are used in our `.env` file mentioned below.
 
 ### FOR SERVER ADMINISTRATORS - `.env` Setup
 Store this `.env` file in the same path as `app.py`
