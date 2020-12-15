@@ -54,7 +54,7 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 
 The application will provide several pieces of data: user data, token data, and scheduled tweets.
 - A user can have many accounts
-- Scheduled tweets are a list of tweets coupled with keys and times for 
+- Scheduled tweets are a list of tweets that the front-end can use to mock the tweet prior to it being sent. 
 - Token data is provided when a user signs in
 
 `User`(strings mocked with UUID for privacy):
