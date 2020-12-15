@@ -5,6 +5,8 @@
 
 ## Getting Started
 
+There is quite a bit of setup before we can get this server fully running. We'll be interacting with AWS as well as the Twitter APIs. Certain services need to be configured and keys need to be collected. Please follow each setup carefully before running this server. 
+
 ### FOR SERVER ADMINISTRATORS - AWS Setup
 
 #### AWS Access Keys
