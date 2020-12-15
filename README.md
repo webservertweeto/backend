@@ -112,6 +112,19 @@ The application will provide several pieces of data: user data, token data, and 
 }
 ```
 
+
+`Token`(strings mocked with UUID for privacy):
+
+```javascript
+{
+  "access_token": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e"",
+  "id_token": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e"",
+  "refresh_token": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e""
+}
+```
+
+
+
 ## Flask Quickstart:
 
 ### Create virtual env
