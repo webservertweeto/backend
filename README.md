@@ -50,6 +50,37 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 - Werkzeug==1.0.1
 
 
+## Data Model
+
+The application will provide several pieces of data: user data, token data, and scheduled tweets.
+- A user can have many accounts
+- Scheduled tweets are a list of tweets coupled with keys and times for 
+- Token data is provided when a user signs in
+
+`User`(strings mocked with UUID for privacy):
+
+```javascript
+{
+      "AWSusername": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+      "email": "johnsmith@gmail.com",
+      "name": "John Smith",
+      "twitterAccounts": [
+          {
+              "accessTokenKey": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+              "accessTokenSecret": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+              "consumerKey": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+              "consumerSecret": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+              "dateJoined": "12/9/2020",
+              "twitterFullName": "John Smith",
+              "twitterHandle": "SmithJohnny",
+              "twitterID": "9d8cae38-38dd-4e54-9521-9d4ee47ffa22e",
+              "twitterProfilePicture": "http://pbs.twimg.com/profile_images/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg",
+              "twitterProfilePictureHttps": "https://pbs.twimg.com/profile_images/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e/9d8cae38-38dd-4e54-9521-9d4ee47ffa22e.jpg"
+          }
+      ]
+}
+```
+
 ## Flask Quickstart:
 
 ### Create virtual env
