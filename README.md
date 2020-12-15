@@ -73,6 +73,7 @@ flask run
 ## References Used
 <p><a href="https://developer.twitter.com/en/portal/dashboard">Twitter Developers</a> - Twitter Developer Tool </p>
 <p> <a href="http://docs.tweepy.org/en/latest/">Tweepy</a> - Tweepy Documentation </p>
+<p> <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/index.html">AWS</a> - Boto3 Documentation </p>
 
 ## Contributors
 
