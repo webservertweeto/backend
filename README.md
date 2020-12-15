@@ -153,7 +153,7 @@ The application will provide several pieces of data: user data, token data, and 
 - Token data is provided when a user signs in
 </p>
 
-`User`(strings mocked with UUID for privacy):
+`User`:
 
 ```javascript
 {
@@ -177,7 +177,7 @@ The application will provide several pieces of data: user data, token data, and 
 }
 ```
 
-`Scheduled Tweets`(strings mocked with UUID for privacy):
+`Scheduled Tweets`:
 
 ```javascript
 {
@@ -209,7 +209,7 @@ The application will provide several pieces of data: user data, token data, and 
 ```
 
 
-`Token`(strings mocked with UUID for privacy):
+`Token`:
 
 ```javascript
 {
