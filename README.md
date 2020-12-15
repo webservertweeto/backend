@@ -4,11 +4,26 @@
 <p>Our application intends to serve as a service that allows users to tweet at a later time. Users will have the capability of setting what day/time a tweet should be sent and they have the option to delete that queued tweet before the deadline. Users have the option to schedule multiple tweets. We've also included the option to upload images as well. For power-users who have multiple twitter accounts to manage, we've given them the ability to register additional accounts.</p>
 
 ## Getting Started
-<p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Acceess token</strong>, <strong>Access token secret</strong>. These credentials are a requirement if you are going to access the Twitter API.
+
+### FOR SERVER ADMINISTRATORS - `.env` Setup
+This server uses several environment variables in order to run properly. Store this `.env` file in the same path as `app.py`
+
+```python
+USER_POOL_ID=Get_this_from_Cognito
+CLIENT_ID=Get_this_from_Cognito
+CLIENT_SECRET=Get_this_from_Cognito
+AWS_ACCESS_KEY_ID=Get_this_from_AWS
+AWS_SECRET_ACCESS_KEY=Get_this_from_AWS
+REGION_NAME=Get_this_from_AWS
+```
+### FOR SERVER ADMINISTRATORS - AWS Setup
+
+<i>DynamoDB</i>
+<p>We'll need 
+
+### FOR USERS - Setup Twitter Developer Account and App (Requirements)
+<p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Access token</strong>, <strong>Access token secret</strong>. We will be tweeting your scheduled tweets on your behalf; therefore, we'll need this information beforehand.
 </p>
-
-
-### Setup Twitter Developer Account and App (Requirements)
 <ol>
   <li> Create a twitter account if you do not already have one. </li>
   <li> <a href="https://developer.twitter.com/en/apply/user"> Apply for a twitter developer account. </a> </li>
@@ -73,11 +88,12 @@ flask run
 
 ## Data Model
 
+<p>
 The application will provide several pieces of data: user data, token data, and scheduled tweets.
 - A user can have many accounts
 - Scheduled tweets are a list of tweets that the front-end can use to mock the tweet prior to it being sent. 
 - Token data is provided when a user signs in
-
+</p>
 `User`(strings mocked with UUID for privacy):
 
 ```javascript
