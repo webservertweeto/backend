@@ -25,7 +25,9 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 
 ### Create virtual env
 
-<i>Activate (on Windows) Please note some variables may be specific to your machine such as "python"</i>
+<i>Activate (on Windows) 
+  
+  Please note some variables may be specific to your machine such as "python"</i>
 ```console
 git clone "https://github.com/webservertweeto/backend.git"
 cd backend/
