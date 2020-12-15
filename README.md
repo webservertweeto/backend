@@ -19,7 +19,7 @@ REGION_NAME=Get_this_from_AWS
 ### FOR SERVER ADMINISTRATORS - AWS Setup
 
 <i>DynamoDB</i>
-<p>We'll need 
+<p>We'll need </p>
 
 ### FOR USERS - Setup Twitter Developer Account and App (Requirements)
 <p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Access token</strong>, <strong>Access token secret</strong>. We will be tweeting your scheduled tweets on your behalf; therefore, we'll need this information beforehand.
