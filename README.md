@@ -8,6 +8,7 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 <p>Before you get started you need to have a valid <strong>Twitter API key</strong>(Consumer Key), <strong>API secret key</strong>(Consumer Secret key), <strong>Acceess token</strong>, <strong>Access token secret</strong>. These credentials are a requirement if you are going to access the Twitter API.
 </p>
 
+
 ### Setup Twitter Developer Account and App (Requirements)
 <ol>
   <li> Create a twitter account if you do not already have one. </li>
@@ -21,6 +22,26 @@ to delete that queued tweet before the deadline.  In addition, they can send out
   <li> First, click on your <strong>API key</strong> and <strong>API secret key</strong>. Second, click on create to get <strong>Access access token</strong> and <strong>access token secret</strong>. </li>
   <li> Click App permissions Edit button and enable <strong>Read, write and access Direct Messages<strong>. </li>
 </ol>
+
+### Create virtual env
+
+```console
+python3 -m venv venv
+Activate (on Mac):
+. venv/bin/activate
+```
+
+```console
+pip install -r requirements.txt
+```
+
+```console
+pip install Flask
+export FLASK_APP=app.py
+flask run
+```
+
+
 
 ## Requirements
 - APScheduler==3.6.3
@@ -125,25 +146,7 @@ The application will provide several pieces of data: user data, token data, and 
 
 
 
-## Flask Quickstart:
 
-### Create virtual env
-
-```console
-python3 -m venv venv
-Activate (on Mac):
-. venv/bin/activate
-```
-
-```console
-pip install -r requirements.txt
-```
-
-```console
-pip install Flask
-export FLASK_APP=app.py
-flask run
-```
 
 ## References Used
 <p><a href="https://developer.twitter.com/en/portal/dashboard">Twitter Developers</a> - Twitter Developer Tool </p>
