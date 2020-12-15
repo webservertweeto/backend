@@ -25,9 +25,10 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 
 ### Create virtual env
 
+<i>Activate (on Mac)</i>
 ```console
 python3 -m venv venv
-Activate (on Mac):
+:
 . venv/bin/activate
 ```
 
