@@ -25,10 +25,12 @@ to delete that queued tweet before the deadline.  In addition, they can send out
 
 ### Create virtual env
 
-<i>Activate (on Mac)</i>
+<i>Activate (on Windows) Please note some variables may be specific to your machine such as "python"</i>
 ```console
-python3 -m venv venv
-. venv/bin/activate
+git clone "https://github.com/webservertweeto/backend.git"
+cd backend/
+python -m venv env
+. env/Scripts/activate
 pip install -r requirements.txt
 export FLASK_APP=app.py
 flask run
@@ -37,6 +39,10 @@ flask run
 
 
 ## Requirements
+### Python Version
+- Python 3.8.5
+
+### Depencendies 
 - APScheduler==3.6.3
 - boto3==1.16.30
 - botocore==1.19.30
